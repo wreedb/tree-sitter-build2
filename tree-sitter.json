@@ -10,7 +10,7 @@
         "build",
         "buildfile"
       ],
-      "highlights": "queries/build2/highlights.scm",
+      "highlights": "queries/highlights.scm",
       "injection-regex": "^build2$",
       "class-name": "TreeSitterBuild2"
     }
