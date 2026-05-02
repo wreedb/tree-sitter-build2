@@ -1,0 +1,6 @@
+exe{tspm}: cxx{main util configuration hash} \
+           hxx{../foo} \
+           hxx{../foo} \
+           ../third-party/rhash/librhash/liba{rhash}
+           
+lib{hello}: {hxx ixx txx cxx}{** -version -config} hxx{version config}

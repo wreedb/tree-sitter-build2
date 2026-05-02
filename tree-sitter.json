@@ -1,0 +1,44 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "build2",
+      "camelcase": "Build2",
+      "title": "Build2",
+      "scope": "source.build2",
+      "file-types": [
+        "build",
+        "buildfile"
+      ],
+      "highlights": "queries/build2/highlights.scm",
+      "injection-regex": "^build2$",
+      "class-name": "TreeSitterBuild2"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception",
+    "description": "Tree-sitter grammar for Build2 'buildfile' syntax",
+    "authors": [
+      {
+        "name": "Will Reed",
+        "email": "wreed@disroot.org",
+        "url": ""
+      }
+    ],
+    "links": {
+      "repository": "https://codeberg.org/wreedb/tree-sitter-build2",
+      "funding": ""
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "java": false,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true,
+    "zig": true
+  }
+}

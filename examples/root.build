@@ -1,0 +1,8 @@
+cxx.std = latest
+
+using c
+using cxx
+using in
+
+cxx.poptions += "-I$src_root/include"
+cxx.libs += -lessence -lcurl -lgit2

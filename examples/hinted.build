@@ -1,0 +1,1 @@
+[rule_hint=cxx] exe{hello}: c{hello} h{hello}

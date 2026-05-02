@@ -1,0 +1,3 @@
+exe{foo}: cxx{main util configuration hash}
+
+liba{foo}: {cxx hxx}{main foo}
