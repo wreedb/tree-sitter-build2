@@ -1,6 +1,6 @@
 [
   {
-    "type": "assigner",
+    "type": "annotation",
     "named": true,
     "fields": {}
   },
@@ -8,23 +8,97 @@
     "type": "assignment",
     "named": true,
     "fields": {
-      "variable": {
+      "key": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "name",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "variable",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "[",
+            "named": false
+          },
+          {
+            "type": "]",
+            "named": false
+          },
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "value",
             "named": true
           }
         ]
       }
-    },
+    }
+  },
+  {
+    "type": "boolean",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "comparator",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "config_directive",
+    "named": true,
+    "fields": {},
     "children": {
       "multiple": true,
       "required": true,
       "types": [
         {
-          "type": "assigner",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "type",
+          "named": true
+        },
+        {
+          "type": "value",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "define_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "annotation",
+          "named": true
+        },
+        {
+          "type": "identifier",
           "named": true
         },
         {
@@ -47,11 +121,19 @@
           "named": true
         },
         {
-          "type": "multi_target",
+          "type": "dependency",
           "named": true
         },
         {
-          "type": "name",
+          "type": "directive",
+          "named": true
+        },
+        {
+          "type": "glob",
+          "named": true
+        },
+        {
+          "type": "identifier",
           "named": true
         },
         {
@@ -59,15 +141,15 @@
           "named": true
         },
         {
-          "type": "path_target",
+          "type": "rule_hint",
           "named": true
         },
         {
-          "type": "single_target",
+          "type": "target",
           "named": true
         },
         {
-          "type": "target_attribute",
+          "type": "variable",
           "named": true
         }
       ]
@@ -78,11 +160,50 @@
     "named": true,
     "fields": {},
     "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "config_directive",
+          "named": true
+        },
+        {
+          "type": "define_directive",
+          "named": true
+        },
+        {
+          "type": "import_directive",
+          "named": true
+        },
+        {
+          "type": "include_directive",
+          "named": true
+        },
+        {
+          "type": "info_directive",
+          "named": true
+        },
+        {
+          "type": "using_directive",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "group",
+    "named": true,
+    "fields": {},
+    "children": {
       "multiple": true,
       "required": true,
       "types": [
         {
-          "type": "keyword",
+          "type": "glob",
+          "named": true
+        },
+        {
+          "type": "identifier",
           "named": true
         },
         {
@@ -90,14 +211,273 @@
           "named": true
         },
         {
-          "type": "string",
+          "type": "variable",
           "named": true
         }
       ]
     }
   },
   {
-    "type": "document",
+    "type": "if_condition",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "comparator",
+          "named": true
+        },
+        {
+          "type": "value_noident",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "if_statement",
+    "named": true,
+    "fields": {
+      "end_branch": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "assignment",
+            "named": true
+          },
+          {
+            "type": "dependency",
+            "named": true
+          },
+          {
+            "type": "directive",
+            "named": true
+          },
+          {
+            "type": "else",
+            "named": false
+          },
+          {
+            "type": "{",
+            "named": false
+          },
+          {
+            "type": "}",
+            "named": false
+          }
+        ]
+      },
+      "initial_branch": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "assignment",
+            "named": true
+          },
+          {
+            "type": "dependency",
+            "named": true
+          },
+          {
+            "type": "directive",
+            "named": true
+          },
+          {
+            "type": "if",
+            "named": false
+          },
+          {
+            "type": "if!",
+            "named": false
+          },
+          {
+            "type": "if_condition",
+            "named": true
+          },
+          {
+            "type": "ife",
+            "named": false
+          },
+          {
+            "type": "ife!",
+            "named": false
+          },
+          {
+            "type": "ifn",
+            "named": false
+          },
+          {
+            "type": "ifn!",
+            "named": false
+          },
+          {
+            "type": "{",
+            "named": false
+          },
+          {
+            "type": "}",
+            "named": false
+          }
+        ]
+      },
+      "middle_branches": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "assignment",
+            "named": true
+          },
+          {
+            "type": "dependency",
+            "named": true
+          },
+          {
+            "type": "directive",
+            "named": true
+          },
+          {
+            "type": "elif",
+            "named": false
+          },
+          {
+            "type": "elif!",
+            "named": false
+          },
+          {
+            "type": "elife",
+            "named": false
+          },
+          {
+            "type": "elife!",
+            "named": false
+          },
+          {
+            "type": "elifn",
+            "named": false
+          },
+          {
+            "type": "elifn!",
+            "named": false
+          },
+          {
+            "type": "if_condition",
+            "named": true
+          },
+          {
+            "type": "{",
+            "named": false
+          },
+          {
+            "type": "}",
+            "named": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "import_directive",
+    "named": true,
+    "fields": {
+      "from": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "resource": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "include_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "path",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "info_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "value",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "rule_hint",
+    "named": true,
+    "fields": {
+      "key": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "rule_hint",
+            "named": false
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "source",
     "named": true,
     "root": true,
     "fields": {},
@@ -116,94 +496,31 @@
         {
           "type": "directive",
           "named": true
+        },
+        {
+          "type": "statement",
+          "named": true
         }
       ]
     }
   },
   {
-    "type": "glob",
-    "named": true,
-    "fields": {}
-  },
-  {
-    "type": "keyword",
-    "named": true,
-    "fields": {}
-  },
-  {
-    "type": "multi_target",
-    "named": true,
-    "fields": {
-      "lhs": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "subject",
-            "named": true
-          }
-        ]
-      },
-      "rhs": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "subject",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "path_target",
+    "type": "statement",
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
         {
-          "type": "path",
+          "type": "if_statement",
           "named": true
         },
         {
-          "type": "subject",
+          "type": "switch_statement",
           "named": true
         }
       ]
-    }
-  },
-  {
-    "type": "quoted_string",
-    "named": true,
-    "fields": {}
-  },
-  {
-    "type": "single_target",
-    "named": true,
-    "fields": {
-      "lhs": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "name",
-            "named": true
-          }
-        ]
-      },
-      "rhs": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "subject",
-            "named": true
-          }
-        ]
-      }
     }
   },
   {
@@ -211,63 +528,90 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
-          "type": "quoted_string",
+          "type": "double_string_fragment",
+          "named": true
+        },
+        {
+          "type": "single_string_fragment",
           "named": true
         }
       ]
     }
   },
   {
-    "type": "subject",
+    "type": "switch_statement",
     "named": true,
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
-          "type": "glob",
+          "type": "assignment",
           "named": true
         },
         {
-          "type": "name",
+          "type": "dependency",
           "named": true
         },
         {
-          "type": "path",
+          "type": "directive",
+          "named": true
+        },
+        {
+          "type": "value",
           "named": true
         }
       ]
     }
   },
   {
-    "type": "target_attribute",
+    "type": "target",
     "named": true,
     "fields": {
-      "key": {
+      "lhs": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "name",
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "identifier",
             "named": true
           }
         ]
       },
-      "value": {
+      "rhs": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "name",
+            "type": "group",
             "named": true
           }
         ]
       }
+    }
+  },
+  {
+    "type": "using_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -279,7 +623,73 @@
       "required": true,
       "types": [
         {
+          "type": "boolean",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "path",
+          "named": true
+        },
+        {
           "type": "string",
+          "named": true
+        },
+        {
+          "type": "variable",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "value_noident",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "boolean",
+          "named": true
+        },
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "path",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        },
+        {
+          "type": "variable",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "variable",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
           "named": true
         }
       ]
@@ -290,7 +700,19 @@
     "named": false
   },
   {
+    "type": "!=",
+    "named": false
+  },
+  {
     "type": "\"",
+    "named": false
+  },
+  {
+    "type": "$",
+    "named": false
+  },
+  {
+    "type": "%",
     "named": false
   },
   {
@@ -298,7 +720,11 @@
     "named": false
   },
   {
-    "type": "*",
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
     "named": false
   },
   {
@@ -307,6 +733,10 @@
   },
   {
     "type": "+=",
+    "named": false
+  },
+  {
+    "type": ",",
     "named": false
   },
   {
@@ -322,7 +752,31 @@
     "named": false
   },
   {
+    "type": "<",
+    "named": false
+  },
+  {
+    "type": "<=",
+    "named": false
+  },
+  {
     "type": "=",
+    "named": false
+  },
+  {
+    "type": "==",
+    "named": false
+  },
+  {
+    "type": ">",
+    "named": false
+  },
+  {
+    "type": ">=",
+    "named": false
+  },
+  {
+    "type": "?=",
     "named": false
   },
   {
@@ -334,7 +788,96 @@
     "named": false
   },
   {
+    "type": "case",
+    "named": false
+  },
+  {
+    "type": "comment",
+    "named": true,
+    "extra": true
+  },
+  {
+    "type": "config",
+    "named": false
+  },
+  {
+    "type": "default",
+    "named": false
+  },
+  {
     "type": "define",
+    "named": false
+  },
+  {
+    "type": "double_string_fragment",
+    "named": true
+  },
+  {
+    "type": "elif",
+    "named": false
+  },
+  {
+    "type": "elif!",
+    "named": false
+  },
+  {
+    "type": "elife",
+    "named": false
+  },
+  {
+    "type": "elife!",
+    "named": false
+  },
+  {
+    "type": "elifn",
+    "named": false
+  },
+  {
+    "type": "elifn!",
+    "named": false
+  },
+  {
+    "type": "else",
+    "named": false
+  },
+  {
+    "type": "false",
+    "named": false
+  },
+  {
+    "type": "glob",
+    "named": true
+  },
+  {
+    "type": "identifier",
+    "named": true
+  },
+  {
+    "type": "if",
+    "named": false
+  },
+  {
+    "type": "if!",
+    "named": false
+  },
+  {
+    "type": "ife",
+    "named": false
+  },
+  {
+    "type": "ife!",
+    "named": false
+  },
+  {
+    "type": "ifn",
+    "named": false
+  },
+  {
+    "type": "ifn!",
+    "named": false
+  },
+  {
+    "type": "import",
     "named": false
   },
   {
@@ -346,11 +889,35 @@
     "named": false
   },
   {
-    "type": "name",
+    "type": "number",
     "named": true
   },
   {
     "type": "path",
+    "named": true
+  },
+  {
+    "type": "rule_hint",
+    "named": false
+  },
+  {
+    "type": "see_through",
+    "named": false
+  },
+  {
+    "type": "single_string_fragment",
+    "named": true
+  },
+  {
+    "type": "switch",
+    "named": false
+  },
+  {
+    "type": "true",
+    "named": false
+  },
+  {
+    "type": "type",
     "named": true
   },
   {

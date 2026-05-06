@@ -1,0 +1,5 @@
+if ($cxx.stdlib == 'libc++')
+{
+    import libs += date%lib{date}
+    cxx.poptions += $($libs: cxx.export.poptions)
+}

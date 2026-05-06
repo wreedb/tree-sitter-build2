@@ -1,4 +1,4 @@
-"""Tree-sitter grammar for Build2 'buildfile' syntax"""
+"""Build2 grammar for tree-sitter"""
 
 from importlib.resources import files as _files
 

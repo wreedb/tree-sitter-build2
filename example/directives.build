@@ -1,0 +1,9 @@
+import foo = essence%lib{essence}
+
+include ../bar
+
+using cxx
+
+define doc: true
+
+info 'foo'

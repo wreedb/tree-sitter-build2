@@ -1,0 +1,12 @@
+$nama = $jeff
+foo = bar
+
+define foo: 42.1
+
+using cxx
+include ./foo/
+name = ../foo/
+exe{foo}: {cxx hxx}{foo}
+#\
+	foo
+#\

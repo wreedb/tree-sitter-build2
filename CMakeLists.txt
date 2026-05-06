@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 project(tree-sitter-build2
         VERSION "0.1.0"
-        DESCRIPTION "Tree-sitter grammar for Build2 'buildfile' syntax"
+        DESCRIPTION "Build2 grammar for tree-sitter"
         HOMEPAGE_URL "https://codeberg.org/wreedb/tree-sitter-build2"
         LANGUAGES C)
 

@@ -1,5 +1,5 @@
 /**
- * @file Tree-sitter grammar for Build2 'buildfile' syntax
+ * @file Build2 grammar for tree-sitter
  * @author Will Reed <wreed@disroot.org>
  * @license LGPL-3.0-or-later WITH LGPL-3.0-linking-exception
  */
@@ -7,166 +7,429 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
+// @ts-ignore
+const sep1 = (rule, separator) => {
+    return seq(rule, repeat(seq(separator, rule)));
+};
+
+// @ts-ignore
+const sep = (rule, separator) => {
+    return optional(sep1(rule, separator));
+};
+
 export default grammar({
     name: "build2",
-
+    
     extras: $ => [
-        /\s/,
-        $._line_continuation
+        $.comment,
+        $._line_continuation,
+        /[\s\f\uFEFF\u2060\u200B]|\r?\n/
     ],
     
     conflicts: $ => [
-        [$.single_target, $.dependency],
-        [$.assignment, $.dependency],
-        [$.dependency, $.path_target]
+        [$.dependency, $._single_target],
+        [$.dependency, $.assignment],
+        [$.dependency],
+        [$.assignment],
     ],
+    
+    word: $ => $.identifier,
 
     rules: {
-        
-        document: $ => optional(
+        source: $ => optional(
             repeat(
                 choice(
                     $.directive,
                     $.dependency,
-                    $.assignment
+                    $.assignment,
+                    $.statement
+                )
+            )
+        ),
+        
+        _line_continuation: $ => token(seq('\\', /\r?\n/)),
+        
+        _kw_switch: $ => token("switch"),
+        _kw_case: $ => token("case"),
+        
+        _kw_if_begin: $ => choice(
+            token("if"),
+            token("if!"),
+            token("ifn"),
+            token("ifn!"),
+            token("ife"),
+            token("ife!"),
+        ),
+
+        _kw_if_cont: $ => choice(
+            token("elif"),
+            token("elif!"),
+            token("elifn"),
+            token("elifn!"),
+            token("elife"),
+            token("elife!")
+        ),
+        
+        type: $ => token(choice(
+            "bool",
+            "int64",
+            "int64s",
+            "uint64",
+            "uint64s",
+            "string",
+            "strings",
+            "string_set",
+            "string_map",
+            "path",
+            "paths",
+            "dir_path",
+            "dir_paths",
+            "json",
+            "json_array",
+            "json_object",
+            "json_set",
+            "json_map",
+            "name",
+            "names",
+            "name_pair",
+            "cmdline",
+            "project_name",
+            "target_triplet"
+        )),
+        
+        _type_annotation: $ => seq(
+            "[", $.type, "]"
+        ),
+        
+        annotation: $ => seq(
+            "[",
+            token("see_through"),
+            "]"
+        ),
+        
+        rule_hint: $ => seq(
+            "[",
+            field("key", token("rule_hint")),
+            "=",
+            field("value", $.identifier),
+            "]"
+        ),
+
+        _kw_if_end: $ => token("else"),
+        
+        comparator: $ => choice(
+            token("=="),
+            token("!="),
+            token(">="),
+            token("<="),
+            token("<"),
+            token(">")
+        ),
+
+        statement: $ => choice(
+            $.if_statement,
+            $.switch_statement
+        ),
+
+
+        if_condition: $ => choice(
+            $.value_noident,
+            seq("(", $.value_noident, $.comparator, $.value_noident, ")"),
+        ),
+
+        _initial_if_branch: $ => seq(
+            $._kw_if_begin,
+            $.if_condition,
+            choice(
+                choice($.assignment, $.dependency, $.directive),
+                seq(
+                    "{",
+                    optional(repeat(choice($.assignment, $.dependency, $.directive))),
+                    "}"
                 )
             )
         ),
 
-        _line_continuation: $ => token(seq('\\', /\r?\n/)),
-
-        path: $ => token(prec(2, seq(
+        _middle_if_branch: $ => seq(
+            $._kw_if_cont,
+            $.if_condition,
             choice(
-                './', 
-                '../',
-                seq(/[a-zA-Z0-9_.-]+/, '/') 
-            ),
-            repeat(/[a-zA-Z0-9_./-]/)
-        ))),
-
-        name: $ => token(prec(1, /[a-zA-Z_][a-zA-Z0-9_.]*/)),
-
-        _prefix: $ => choice(
-            token.immediate("-"),
-            token.immediate("+")
-        ),
-        
-        single_target: $ => seq(
-            field("lhs", $.name),
-            "{",
-            field("rhs", $.subject),
-            "}"
-        ),
-        
-        multi_target: $ => seq(
-            "{",
-            field("lhs", $.subject),
-            "}",
-            "{",
-            field("rhs", $.subject),
-            "}"
-        ),
-
-        subject: $ => choice(
-            seq(optional($._prefix), $.name),
-            seq(optional($._prefix), $.path),
-            $.glob,
-            sep1(seq(optional($._prefix), $.name), " "),
-            sep1(seq(optional($._prefix), $.path), " "),
-            sep1($.glob, " "),
-        ),
-
-        target_attribute: $ => seq(
-            "[",
-            field("key", $.name),
-            "=",
-            field("value", $.name),
-            "]"
-        ),
-
-        dependency: $ => seq(
-            optional($.target_attribute),
-            choice(
-                sep1(
-                    choice($.path, $.path_target, $.name, $.single_target, $.multi_target),
-                    choice(" ", ":"),
-                ),
+                choice($.dependency, $.assignment, $.directive),
                 seq(
-                    choice($.path, $.path_target, $.name, $.single_target, $.multi_target),
-                    ":",
-                    $.assignment
+                    "{", 
+                    optional(repeat(choice($.assignment, $.dependency, $.directive))),
+                    "}"
                 ),
+            ),
+        ),
+
+        _end_if_branch: $ => seq(
+            $._kw_if_end,
+            choice(
+                choice($.dependency, $.assignment, $.directive),
+                seq(
+                    "{", 
+                    optional(repeat(choice($.assignment, $.dependency, $.directive))),
+                    "}"
+                ),
+            ),
+        ),
+
+        if_statement: $ => seq(
+            field("initial_branch", $._initial_if_branch),
+            optional(field("middle_branches", repeat($._middle_if_branch))),
+            optional(field("end_branch", $._end_if_branch))
+        ),
+
+        switch_statement: $ => seq(
+            $._kw_switch,
+            "{",
+            repeat(seq(
+                $._kw_case,
+                sep1($.value, ","),
+                "{",
+                choice($.directive, $.assignment, $.dependency),
+                "}"
+            )),
+            optional(seq(
+                token("default"),
+                sep1($.value, ","),
+                "{",
+                choice($.directive, $.assignment, $.dependency),
+                "}"
+            )),
+            "}"
+        ),
+        
+        double_string_fragment: _ => token.immediate(prec(1, /[^"\\\r\n]+/)),
+        single_string_fragment: _ => token.immediate(prec(1, /[^'\\\r\n]+/)),
+        string_fragment: $ => choice(
+            $.double_string_fragment,
+            $.single_string_fragment,
+        ),
+        
+        string: $ => choice(
+            seq(
+                '"',
+                repeat($.double_string_fragment),
+                '"',
+            ),
+            seq(
+                '\'',
+                repeat($.single_string_fragment),
+                '\'',
+            ),
+        ),
+        
+        _prefix: $ => choice(
+            "-", "+"
+        ),
+        
+        _single_target: $ => seq(
+            field("lhs", $.identifier),
+            field("rhs", $.group),
+        ),
+        
+        group: $ => seq(
+            "{",
+                sep1(choice(
+                    seq(optional($._prefix), $.identifier),
+                    seq(optional($._prefix), $.path),
+                    seq(optional($._prefix), $.variable),
+                    $.glob
+                )," "),
+            "}"
+        ),
+        
+        _multi_target: $ => seq(
+            field("lhs", $.group),
+            field("rhs", $.group)
+        ),
+        
+        target: $ => choice($._single_target, $._multi_target),
+        
+        _assigner: _ => choice(
+            token("="),
+            token("+="),
+            token("-="),
+            token("?="),
+        ),
+        
+        assignment: $ => seq(
+            field("key", choice($.identifier, $.variable)),
+            optional(repeat1(" ")),
+            optional(field("type", $._type_annotation)),
+            optional(repeat1(" ")),
+            $._assigner,
+            optional(repeat1(" ")),
+            field("value", $.value)
+        ),
+        
+        comment: _ => token(
+            choice(
+                seq("#", /(\\+(.|\r?\n)|[^\\\n])*/),
+                seq("#\\", /[^*]*/, "#\\")
             )
         ),
-
-
-        glob: $ => seq("*", optional("*")),
-
-        assigner: $ => choice(
-            "=",
-            "+=",
-            "-="
+        
+        variable: $ => seq(
+            "$",
+            $.identifier
+        ),
+        
+        identifier: $ => token(seq(
+            /[a-zA-Z]/,
+            /[a-zA-Z0-9_.]*/
+        )),
+        number: $ => /\d+(\.\d+)?/,
+        boolean: $ => choice(
+            token("true"),
+            token("false")
+        ),
+ 
+        value_noident: $ => choice(
+            $.string,
+            $.number,
+            $.variable,
+            $.path,
+            $.boolean
         ),
 
-        value: $ => $.string,
-        quoted_string: $ => choice(
+        value: $ => choice(
+            $.string,
+            $.identifier,
+            $.number,
+            $.boolean,
+            $.variable,
+            $.path
+        ),
+        
+        glob: $ => token(seq("*", optional("*"))),
+        
+        define_directive: $ => seq(
+            $._kw_define,
+            optional($.annotation),
+            $.identifier,
+            ":",
+            $.value
+        ),
+        
+        using_directive: $ => seq(
+            $._kw_using,
+            $.identifier
+        ),
+        
+        include_directive: $ => seq(
+            $._kw_include,
+            $.path
+        ),
+
+        import_directive: $ => seq(
+            $._kw_import,
+            $.identifier,
+            $._assigner,
+            $._import_traversal,
+        ),
+
+        _import_traversal: $ => seq(
+            field("from", $.identifier),
+            "%",
+            field("resource",
+                seq(
+                    $.identifier,
+                    $.group,
+                ),
+            ),
+        ),
+        
+        _kw_define: $ => token("define"),
+        _kw_using: $ => token("using"),
+        _kw_include: $ => token("include"),
+        _kw_import: $ => token("import"),
+        _kw_info: $ => token("info"),
+        _kw_export: $ => token("export"),
+        
+        info_directive: $ => seq(
+            $._kw_info,
+            $.value
+        ),
+        
+        directive_keyword: $ => choice(
+            $._kw_define,
+            $._kw_using,
+            $._kw_include,
+            $._kw_import,
+            $._kw_info,
+            $._kw_export
+        ),
+        
+        directive: $ => choice(
+            $.define_directive,
+            $.using_directive,
+            $.include_directive,
+            $.import_directive,
+            $.info_directive,
+            $.config_directive,
+        ),
+        
+        path: $ => token(prec(2, seq(
+            choice(
+                "./",
+                "../",
+                seq(/[a-zA-Z0-9_.-]/, "/")
+            ),
+            repeat(/[a-zA-Z0-9_./]/)
+        ))),
+        
+        _dependency_configuration: $ => choice(
             seq(
-                token('"'),
-                optional(token(/[^"\n\r;]+/)),
-                token('"')
+                $.target,
+                ":",
+                "{",
+                    optional(repeat(choice(
+                        $.assignment,
+                        $.directive,
+                    ))),
+                "}",
             ),
             seq(
-                token("'"),
-                optional(token(/[^'\n\r;]+/)),
-                token("'")
+                $.target,
+                ":",
+                $.assignment
             ),
         ),
-            
-        string: $ => choice(
-            $.quoted_string,
-            token(/[^\s"'=:<\n\r\[\]\{\};][^"'\n\r\[\]\{\};]*/),
-        ),
-
-        assignment: $ => seq(
-            field("variable", $.name),
-            optional(" "),
-            optional(seq(
-
-                optional(" ")
-            )),
-            $.assigner,
-            optional(" "),
+        
+        _kw_config: $ => token("config"),
+        
+        config_directive: $ => seq(
+            $._kw_config,
+            optional($._type_annotation),
+            $.identifier,
+            $._assigner,
             $.value,
         ),
         
-        keyword: $ => choice(
-            token(prec(2, "define")),
-            token(prec(2, "using")),
-            token(prec(2, "include")),
-            token(prec(2, "info")),
+        dependency: $ => seq(
+            optional($.rule_hint),
+            choice(
+                $._dependency_configuration,
+                seq(
+                    choice($.identifier, $.target, $.path),
+                    ":",
+                    repeat1(choice($.dependency, $.identifier, $.target, $.path, $.variable, $.glob)),
+                ),
+            ),
         ),
-
-        directive: $ => seq(
-            $.keyword,
-            " ",
-            choice($.string, $.path)
-        ),
-
-        path_target: $ => seq(
-            $.path,
-            "{",
-            $.subject,
-            "}"
-        ),
+        
+        // dependency: $ => choice(
+        //     $._dependency_configuration,
+        //     seq(
+        //         choice($.identifier, $.target, $.path),
+        //         ":",
+        //         repeat1(choice($.dependency, $.identifier, $.target, $.path, $.variable, $.glob)),
+                    
+        //         // sep1(choice($.identifier, $.target, $.path, $.variable, $.glob), " ")
+        //     ),
+        // ),
     }
 });
-
-function sep1(rule, separator)
-{
-    return seq(rule, repeat(seq(separator, rule)));
-}
-
-function sep(rule, separator)
-{
-    return optional(sep1(rule, separator));
-}

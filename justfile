@@ -1,16 +1,12 @@
-default:
-    @just --list
+default: regen
 
-all: regen wasm play
+clean:
+    -rm -fr *.wasm *.so .build/ .cache/ .zig-cache/ zig-out/
 
 regen:
     tree-sitter generate
+    tree-sitter build --debug --reuse-allocator
+    tree-sitter build --debug --reuse-allocator --wasm
 
-wasm: regen
-    tree-sitter build --wasm
-
-play: wasm
+play: regen
     tree-sitter playground
-
-clean:
-    -rm -fr *.so *.wasm .build/ .zig-cache/ zig-out/

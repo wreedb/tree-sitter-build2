@@ -1,0 +1,16 @@
+if ($foo == 'bar')
+{
+    define name: $jeff
+}
+elif ($foo == "fizz")
+{
+    define boo: $foo
+}
+elifn! true
+{
+    define name: "bar"
+}
+else
+{
+    define name: "buzz"
+}

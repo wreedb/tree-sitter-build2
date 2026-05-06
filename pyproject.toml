@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree-sitter-build2"
-description = "Tree-sitter grammar for Build2 'buildfile' syntax"
+description = "Build2 grammar for tree-sitter"
 version = "0.1.0"
 keywords = ["incremental", "parsing", "tree-sitter", "build2"]
 classifiers = [
@@ -20,7 +20,6 @@ readme = "README.md"
 
 [project.urls]
 Homepage = "https://codeberg.org/wreedb/tree-sitter-build2"
-Funding = ""
 
 [project.optional-dependencies]
 core = ["tree-sitter~=0.24"]

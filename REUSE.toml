@@ -1,0 +1,29 @@
+version = 1
+SPDX-PackageName = "tree-sitter-build2"
+SPDX-PackageSupplier = "Will Reed <wreed@disroot.org>"
+
+[[annotations]]
+SPDX-FileCopyrightText = "2026 Will Reed <wreed@disroot.org>"
+SPDX-License-Identifier = "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception"
+path = [
+    "src/**",
+    "bindings/**",
+    "example/**",
+    "queries/**",
+    ".editorconfig",
+    ".gitignore",
+    ".gitattributes",
+    ".version",
+    "*.txt",
+    "*.mod",
+    "*.toml",
+    "*.py",
+    "*.json",
+    "*.swift",
+    "*.gyp",
+    "*.toml",
+    "*.lock",
+    "*.js",
+    "Makefile",
+    "justfile"
+]
