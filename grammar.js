@@ -30,7 +30,9 @@ export default grammar({
         [$.dependency, $._single_target],
         [$.dependency, $.assignment],
         [$.dependency],
+        [$.dependency, $.group],
         [$.assignment],
+        [$._multi_target, $.dependency],
     ],
     
     word: $ => $.identifier,
@@ -42,7 +44,8 @@ export default grammar({
                     $.directive,
                     $.dependency,
                     $.assignment,
-                    $.statement
+                    $.statement,
+                    $.scope
                 )
             )
         ),
@@ -113,6 +116,14 @@ export default grammar({
             "=",
             field("value", $.identifier),
             "]"
+        ),
+
+        scope: $ => seq(
+            "{",
+            /\n/,
+            sep(choice($.statement, $.assignment, $.directive), /\n/),
+            /\n/,
+            "}",
         ),
 
         _kw_if_end: $ => token("else"),
@@ -236,7 +247,8 @@ export default grammar({
                     seq(optional($._prefix), $.identifier),
                     seq(optional($._prefix), $.path),
                     seq(optional($._prefix), $.variable),
-                    $.glob
+                    $.pathglob,
+                    $.glob,
                 )," "),
             "}"
         ),
@@ -252,6 +264,8 @@ export default grammar({
             token("="),
             token("+="),
             token("-="),
+            token("=+"),
+            token("=-"),
             token("?="),
         ),
         
@@ -262,7 +276,7 @@ export default grammar({
             optional(repeat1(" ")),
             $._assigner,
             optional(repeat1(" ")),
-            field("value", $.value)
+            repeat1(field("value", $.value))
         ),
         
         comment: _ => token(
@@ -274,13 +288,19 @@ export default grammar({
         
         variable: $ => seq(
             "$",
-            $.identifier
+            $.identifier,
         ),
         
         identifier: $ => token(seq(
             /[a-zA-Z]/,
             /[a-zA-Z0-9_.]*/
         )),
+
+        flag: $ => token(seq(
+            "--",
+            /[a-zA-Z0-9_-]*/
+        )),
+
         number: $ => /\d+(\.\d+)?/,
         boolean: $ => choice(
             token("true"),
@@ -292,7 +312,9 @@ export default grammar({
             $.number,
             $.variable,
             $.path,
-            $.boolean
+            $.boolean,
+            $.pathglob,
+            $.flag,
         ),
 
         value: $ => choice(
@@ -301,7 +323,10 @@ export default grammar({
             $.number,
             $.boolean,
             $.variable,
-            $.path
+            $.variable_path,
+            $.path,
+            $.pathglob,
+            $.flag
         ),
         
         glob: $ => token(seq("*", optional("*"))),
@@ -352,6 +377,13 @@ export default grammar({
         info_directive: $ => seq(
             $._kw_info,
             $.value
+        ),
+
+        pathglob: $ => choice(
+            token("*/"),
+            token("/*"),
+            token("**/"),
+            token("/**"),
         ),
         
         directive_keyword: $ => choice(
@@ -408,28 +440,26 @@ export default grammar({
             $._assigner,
             $.value,
         ),
+
+        variable_path: $ => prec(2, seq(
+            $.variable,
+            "/",
+            /[a-zA-Z0-9.]/,
+            /[a-zA-Z0-9_.-]*/,
+        )),
         
         dependency: $ => seq(
             optional($.rule_hint),
             choice(
                 $._dependency_configuration,
+                $.group,
                 seq(
                     choice($.identifier, $.target, $.path),
                     ":",
-                    repeat1(choice($.dependency, $.identifier, $.target, $.path, $.variable, $.glob)),
+                    repeat1(choice($.identifier, $.variable, $.variable_path, $.target, $.path, $.glob, $.string, $.dependency)),
                 ),
             ),
         ),
         
-        // dependency: $ => choice(
-        //     $._dependency_configuration,
-        //     seq(
-        //         choice($.identifier, $.target, $.path),
-        //         ":",
-        //         repeat1(choice($.dependency, $.identifier, $.target, $.path, $.variable, $.glob)),
-                    
-        //         // sep1(choice($.identifier, $.target, $.path, $.variable, $.glob), " ")
-        //     ),
-        // ),
     }
 });

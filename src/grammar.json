@@ -26,6 +26,10 @@
               {
                 "type": "SYMBOL",
                 "name": "statement"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "scope"
               }
             ]
           }
@@ -333,6 +337,86 @@
         {
           "type": "STRING",
           "value": "]"
+        }
+      ]
+    },
+    "scope": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "PATTERN",
+          "value": "\\n"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "statement"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "assignment"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "directive"
+                    }
+                  ]
+                },
+                {
+                  "type": "REPEAT",
+                  "content": {
+                    "type": "SEQ",
+                    "members": [
+                      {
+                        "type": "PATTERN",
+                        "value": "\\n"
+                      },
+                      {
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "SYMBOL",
+                            "name": "statement"
+                          },
+                          {
+                            "type": "SYMBOL",
+                            "name": "assignment"
+                          },
+                          {
+                            "type": "SYMBOL",
+                            "name": "directive"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "PATTERN",
+          "value": "\\n"
+        },
+        {
+          "type": "STRING",
+          "value": "}"
         }
       ]
     },
@@ -1050,6 +1134,10 @@
                 },
                 {
                   "type": "SYMBOL",
+                  "name": "pathglob"
+                },
+                {
+                  "type": "SYMBOL",
                   "name": "glob"
                 }
               ]
@@ -1131,6 +1219,10 @@
                       },
                       {
                         "type": "SYMBOL",
+                        "name": "pathglob"
+                      },
+                      {
+                        "type": "SYMBOL",
                         "name": "glob"
                       }
                     ]
@@ -1202,6 +1294,20 @@
           "content": {
             "type": "STRING",
             "value": "-="
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "STRING",
+            "value": "=+"
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "STRING",
+            "value": "=-"
           }
         },
         {
@@ -1299,11 +1405,14 @@
           ]
         },
         {
-          "type": "FIELD",
-          "name": "value",
+          "type": "REPEAT1",
           "content": {
-            "type": "SYMBOL",
-            "name": "value"
+            "type": "FIELD",
+            "name": "value",
+            "content": {
+              "type": "SYMBOL",
+              "name": "value"
+            }
           }
         }
       ]
@@ -1375,6 +1484,22 @@
         ]
       }
     },
+    "flag": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "--"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z0-9_-]*"
+          }
+        ]
+      }
+    },
     "number": {
       "type": "PATTERN",
       "value": "\\d+(\\.\\d+)?"
@@ -1420,6 +1545,14 @@
         {
           "type": "SYMBOL",
           "name": "boolean"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "pathglob"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "flag"
         }
       ]
     },
@@ -1448,7 +1581,19 @@
         },
         {
           "type": "SYMBOL",
+          "name": "variable_path"
+        },
+        {
+          "type": "SYMBOL",
           "name": "path"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "pathglob"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "flag"
         }
       ]
     },
@@ -1642,6 +1787,39 @@
         {
           "type": "SYMBOL",
           "name": "value"
+        }
+      ]
+    },
+    "pathglob": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "STRING",
+            "value": "*/"
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "STRING",
+            "value": "/*"
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "STRING",
+            "value": "**/"
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "STRING",
+            "value": "/**"
+          }
         }
       ]
     },
@@ -1855,6 +2033,31 @@
         }
       ]
     },
+    "variable_path": {
+      "type": "PREC",
+      "value": 2,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "variable"
+          },
+          {
+            "type": "STRING",
+            "value": "/"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z0-9.]"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z0-9_.-]*"
+          }
+        ]
+      }
+    },
     "dependency": {
       "type": "SEQ",
       "members": [
@@ -1876,6 +2079,10 @@
             {
               "type": "SYMBOL",
               "name": "_dependency_configuration"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "group"
             },
             {
               "type": "SEQ",
@@ -1908,11 +2115,15 @@
                     "members": [
                       {
                         "type": "SYMBOL",
-                        "name": "dependency"
+                        "name": "identifier"
                       },
                       {
                         "type": "SYMBOL",
-                        "name": "identifier"
+                        "name": "variable"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "variable_path"
                       },
                       {
                         "type": "SYMBOL",
@@ -1924,11 +2135,15 @@
                       },
                       {
                         "type": "SYMBOL",
-                        "name": "variable"
+                        "name": "glob"
                       },
                       {
                         "type": "SYMBOL",
-                        "name": "glob"
+                        "name": "string"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "dependency"
                       }
                     ]
                   }
@@ -1967,7 +2182,15 @@
       "dependency"
     ],
     [
+      "dependency",
+      "group"
+    ],
+    [
       "assignment"
+    ],
+    [
+      "_multi_target",
+      "dependency"
     ]
   ],
   "precedences": [],

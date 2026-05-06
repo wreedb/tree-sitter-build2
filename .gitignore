@@ -6,6 +6,7 @@ build/
 prebuilds/
 node_modules/
 deno.lock
+bun.lock
 
 # Swift artifacts
 .build/
