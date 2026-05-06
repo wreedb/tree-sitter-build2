@@ -203,6 +203,21 @@
     }
   },
   {
+    "type": "double_string",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "variable",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "group",
     "named": true,
     "fields": {},
@@ -521,6 +536,11 @@
     }
   },
   {
+    "type": "single_string",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "source",
     "named": true,
     "root": true,
@@ -576,15 +596,15 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
-      "required": false,
+      "multiple": false,
+      "required": true,
       "types": [
         {
-          "type": "double_string_fragment",
+          "type": "double_string",
           "named": true
         },
         {
-          "type": "single_string_fragment",
+          "type": "single_string",
           "named": true
         }
       ]
@@ -920,10 +940,6 @@
     "named": false
   },
   {
-    "type": "double_string_fragment",
-    "named": true
-  },
-  {
     "type": "elif",
     "named": false
   },
@@ -1018,10 +1034,6 @@
   {
     "type": "see_through",
     "named": false
-  },
-  {
-    "type": "single_string_fragment",
-    "named": true
   },
   {
     "type": "switch",

@@ -6,7 +6,7 @@
   ["$"] @character.special)
 
 (variable
-  (identifier) @variable)
+  (identifier) @property)
 
 (assignment
   key: (identifier) @variable)
@@ -26,7 +26,7 @@
 (dependency
   (target
     rhs: (group
-      (identifier) @variable)))
+      (identifier) @property)))
 
 (comment) @comment
 (number) @number
@@ -97,3 +97,15 @@
 (type) @type
 
 ["=" "?=" "!=" "==" ">=" "<="] @operator
+
+(string
+  (double_string
+    (variable
+      (identifier) @variable)))
+
+(string
+  (double_string
+    (variable
+      ["$"] @character.special)))
+
+(path) @string.special.path

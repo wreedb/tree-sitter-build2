@@ -127,6 +127,21 @@ export default grammar({
         ),
 
         _kw_if_end: $ => token("else"),
+ 
+        _double_string_content: $ => token.immediate(prec(1, /[^"\\$]+/)),
+        _single_string_content: $ => token.immediate(prec(1, /[^'\\$]+/)),
+        
+        double_string: $ => seq(
+            '"',
+            repeat(choice($._double_string_content, $.variable)),
+            '"'
+        ),
+        
+        single_string: $ => seq(
+            "'",
+            repeat($._single_string_content),
+            "'"
+        ),
         
         comparator: $ => choice(
             token("=="),
@@ -219,18 +234,19 @@ export default grammar({
             $.single_string_fragment,
         ),
         
-        string: $ => choice(
-            seq(
-                '"',
-                repeat($.double_string_fragment),
-                '"',
-            ),
-            seq(
-                '\'',
-                repeat($.single_string_fragment),
-                '\'',
-            ),
-        ),
+        string: $ => choice($.double_string, $.single_string),
+        // string: $ => choice(
+        //     seq(
+        //         '"',
+        //         repeat($.double_string_fragment),
+        //         '"',
+        //     ),
+        //     seq(
+        //         '\'',
+        //         repeat($.single_string_fragment),
+        //         '\'',
+        //     ),
+        // ),
         
         _prefix: $ => choice(
             "-", "+"
