@@ -1,111 +1,120 @@
-(boolean) @boolean
+(comment) @comment @spell
 
-(glob) @string.special
-
-(variable
-  ["$"] @character.special)
-
-(variable
-  (identifier) @property)
-
-(assignment
-  key: (identifier) @variable)
-
-(assignment
-  value: (value) @string)
-    
-(dependency
-  (target
-    lhs: (identifier) @keyword.builtin))
-
-(dependency
-  (target
-    lhs: (group
-      (identifier) @keyword.builtin)))
-
-(dependency
-  (target
-    rhs: (group
-      (identifier) @property)))
-
-(comment) @comment
+(type) @type.builtin
 (number) @number
+(path) @string.special.path
 (string) @string
 
-(if_statement
-  ["if" "ifn" "ife" "if!" "ifn!" "ife!" "elif" "elif!" "elifn" "elifn!" "elife" "elife!" "else"] @keyword.builtin)
+(variable) @function
 
-(import_directive
-  ["import"] @function.builtin)
-
-(import_directive
-  (identifier) @keyword.builtin)
-
-(import_directive
-  resource: (group
-    (identifier) @variable))
-
-(define_directive
-  ["define"] @function.macro)
-
-(info_directive
-  ["info"] @function.macro)
-
-(include_directive
-  ["include"] @function.macro)
-
-(using_directive
-  ["using"] @function.macro)
-
-(using_directive
-  (identifier) @variable)
-
-(include_directive
-  (path) @string.special.path)
-
-(define_directive
-  (identifier) @property)
-
-(define_directive
-  (value
-    (string) @string))
-
-(define_directive
-  (value
-    (path) @string.special.path))
-
-(define_directive
-  (value
-    (variable) @variable))
-
-(define_directive
-  (value
-    (identifier) @variable))
-
-(dependency
-  (rule_hint
-    ["rule_hint"] @function.macro))
-
-(dependency
-  (rule_hint
-    value: (identifier) @variable))
-
-(annotation) @label
-(annotation
-  ["[" "]"] @punctuation.bracket)
-
-(type) @type
-
-["=" "?=" "!=" "==" ">=" "<="] @operator
+(flag) @string
 
 (string
-  (double_string
-    (variable
-      (identifier) @variable)))
+  (variable) @string.escape)
 
-(string
-  (double_string
-    (variable
-      ["$"] @character.special)))
 
-(path) @string.special.path
+(group
+  lhs: (name) @keyword.builtin)
+
+(group
+  rhs: (name) @property)
+
+
+(assignment_expression
+  value: (value
+    (name) @string))
+
+(dependency
+  value: (identifier) @string)
+ 
+(pair
+  lhs: (name) @label)
+
+[
+  "%"
+  "@"
+  "="
+  "=="
+  "!="
+  "?="
+  "=?"
+  ">="
+  "<="
+  "<"
+  ">"
+  "+="
+  "=+"
+  "-="
+  "=-"
+] @operator
+
+(import
+  rhs: (identifier) @property)
+
+(import
+  lhs: (identifier) @keyword.builtin)
+
+[
+  "{"
+  "}"
+  "["
+  "]"
+] @punctuation.bracket
+
+[
+  "if" "ife" "ifn"
+  "if!" "ife!" "ifn!"
+  "elif" "elife" "elifn"
+  "elif!" "elife!" "elifn!"
+  "else"
+] @keyword.conditional
+
+(scope_begin) @punctuation.bracket
+
+(directive
+  (_
+    [
+     "using"
+     "define"
+     "include"
+     "source"
+     "import"
+    ] @keyword.builtin))
+
+(using
+  (name) @property)
+
+(define
+  name: (identifier) @variable)
+
+(define
+  value: (name) @property)
+
+(xname) @string
+(negated_path) @comment
+(negated_path
+  (path) @comment)
+
+(selection
+  ["$(" ")"] @punctuation.special)
+
+(import
+  from: (identifier) @module)
+  
+(selection
+  resource: (identifier) @constant)
+  
+(((identifier) @boolean)
+  (#match? @boolean "^(true|false)$"))
+  
+(((identifier) @number)
+  (#match? @number "^[0-9.]+$"))
+
+(((path) @number)
+  (#match? @number "^[0-9.]+$"))
+
+((path) @character.special
+ (#match? @character.special "(\\*|\\*\\*)"))
+
+((identifier) @property
+ (#match? @property "^manifest$"))

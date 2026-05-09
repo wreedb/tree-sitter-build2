@@ -48,3 +48,7 @@ zig-out/
 *.tgz
 *.zip
 *.jar
+
+old.*
+ugh.*
+deno.json

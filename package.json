@@ -1,8 +1,8 @@
 {
+  "type": "module",
   "name": "tree-sitter-build2",
   "version": "0.1.0",
   "description": "Build2 grammar for tree-sitter",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://codeberg.org/wreedb/tree-sitter-build2.git"

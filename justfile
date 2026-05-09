@@ -5,8 +5,8 @@ clean:
 
 regen:
     tree-sitter generate
-    tree-sitter build --debug --reuse-allocator
-    tree-sitter build --debug --reuse-allocator --wasm
+    tree-sitter build --reuse-allocator
+    tree-sitter build --reuse-allocator --wasm
 
 play: regen
     tree-sitter playground
