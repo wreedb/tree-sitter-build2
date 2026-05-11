@@ -1,5 +1,0 @@
-foo [string] = "bar"
-
-[rule_hint=cxx] {foo fuzz}{bar}: {cxx hxx}{foo}
-
-define [see_through] foo: bar

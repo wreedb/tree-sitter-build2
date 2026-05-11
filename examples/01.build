@@ -1,0 +1,48 @@
+cli.cxx{options}: cli{options}:
+{
+    cli.options += --cxx-suffix=.cpp
+    cli.options += --hxx-suffix=.hpp
+    cli.options += --ixx-suffix=.ipp
+    cli.options += --ansi-color
+}
+
+foo{*}:
+{
+	install = include/bar/
+}
+
+foo{cxx}: exe{main}: install = true
+
+lib{essence}: unix/{obja objs}{foo bar} \
+			  manifest foo \
+              uni/exe{main}:
+{
+    install = true
+    install.subdirs = true
+}
+              
+install = true
+
+PATH = $getenv("PATH")
+parts = $split($PATH, ':', dedup)
+
+if ($cxx.stdlib == 'libc++')
+{
+    info "foo"
+}
+
+switch $cxx.stdlib
+{
+    case 'libc++'
+        info "using libc++"
+    default
+        info "using default"
+}
+
+./: foo bar buzz {+*/ foo}
+
+for n: null
+{
+    foo += "bar"
+    break   
+}

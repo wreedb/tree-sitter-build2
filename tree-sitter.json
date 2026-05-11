@@ -1,50 +1,43 @@
 {
-    "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
-    "grammars":
-    [
-        {
-            "name": "build2",
-            "camelcase": "Build2",
-            "title": "Build2",
-            "scope": "source.build2",
-            "file-types":
-            [
-                "build",
-                "buildfile"
-            ],
-            "highlights": "queries/highlights.scm",
-            "injection-regex": "^build2$",
-            "class-name": "TreeSitterBuild2"
-        }
-    ],
-    "metadata":
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
     {
-        "version": "0.3.0",
-        "license": "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception",
-        "description": "Build2 grammar for tree-sitter",
-        "authors":
-        [
-            {
-                "name": "Will Reed",
-                "email": "wreed@disroot.org",
-                "url": "https://wreedb.github.io"
-            }
-        ],
-        "links":
-        {
-            "repository": "https://codeberg.org/wreedb/tree-sitter-build2",
-            "funding": ""
-        }
-    },
-    "bindings":
-    {
-        "c": true,
-        "go": true,
-        "java": false,
-        "node": true,
-        "python": true,
-        "rust": true,
-        "swift": true,
-        "zig": false
+      "name": "build2",
+      "camelcase": "Build2",
+      "title": "Build2",
+      "scope": "source.build",
+      "file-types": [
+        "buildfile",
+        "build"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injection-regex": "^build2$",
+      "class-name": "TreeSitterBuild2"
     }
+  ],
+  "metadata": {
+    "version": "0.3.0",
+    "license": "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception",
+    "description": "Build2 grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "Will Reed",
+        "email": "wreed@disroot.org",
+        "url": "https://wreedb.github.io"
+      }
+    ],
+    "links": {
+      "repository": "https://codeberg.org/wreedb/tree-sitter-build2"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "java": false,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true,
+    "zig": false
+  }
 }

@@ -1,0 +1,45 @@
+uni/obj{dirent}: uni/{cxx hxx}{dirent}
+uni/obj{group}: uni/{cxx hxx}{group}
+uni/obj{passwd}: uni/{cxx hxx}{passwd}
+uni/obj{signal}: uni/{cxx hxx}{signal}
+uni/obj{stat}: uni/{cxx hxx}{stat}
+uni/obj{strerror}: uni/{cxx hxx}{strerror}
+uni/obj{term}: uni/{cxx hxx}{term}
+uni/obj{unistd}: uni/{cxx hxx}{unistd}
+
+# hxx{version}: in{version} $src_root/manifest
+
+hxx{version}:
+{
+    install = include/essence/
+    install.subdirs = true
+}
+
+obj{color}: {cxx hxx}{color}
+obj{encoding}: {cxx hxx}{encoding}
+
+uni/hxx{*}:
+{
+    install = include/essence/uni/
+    install.subdirs = true
+}
+
+import libessence = essence%lib{essence}
+
+define [bool] foo: true
+
+cxx{*}: extension = cpp
+hxx{*}: extension = hpp
+txx{*}: extension = tpp
+ixx{*}: extension = ipp
+mxx{*}: extension = mpp
+
+./: foo{bar -foo/} manifest
+
+cli.cxx{options}: cli{options}:
+{
+    cli.options += --cxx-suffix=.cpp
+    cli.options += --hxx-suffix=.hpp
+    cli.options += --ixx-suffix=.ipp
+    cli.options += --ansi-color
+}

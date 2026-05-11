@@ -1,18 +1,17 @@
 {
-  "type": "module",
   "name": "tree-sitter-build2",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Build2 grammar for tree-sitter",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://codeberg.org/wreedb/tree-sitter-build2.git"
   },
-  "funding": "",
   "license": "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception",
   "author": {
     "name": "Will Reed",
-    "email": "wreed@disroot.org",
-    "url": "https://wreedb.github.io"
+    "url": "https://wreedb.github.io",
+    "email": "wreed@disroot.org"
   },
   "main": "bindings/node",
   "types": "bindings/node",
@@ -20,7 +19,7 @@
     "incremental",
     "parsing",
     "tree-sitter",
-    "build2"
+    "example"
   ],
   "files": [
     "grammar.js",

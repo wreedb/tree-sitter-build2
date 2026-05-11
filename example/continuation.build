@@ -1,5 +1,0 @@
-lib{essence}: obj{color encoding environment error i18n io process str} \
-              uni/obj{dirent group passwd signal stat strerror term unistd} \
-              xdg/obj{basedir} \
-              hxx{version} \
-              hxx{**}

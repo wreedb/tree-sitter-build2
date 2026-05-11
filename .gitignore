@@ -1,3 +1,14 @@
+*.tar.*
+*.z
+*.Z
+*.gz
+*.lz
+*.lz4
+*.lzma
+*.xz
+*.bz2
+*.br
+
 # Rust artifacts
 target/
 
@@ -5,8 +16,6 @@ target/
 build/
 prebuilds/
 node_modules/
-deno.lock
-bun.lock
 
 # Swift artifacts
 .build/
@@ -48,7 +57,4 @@ zig-out/
 *.tgz
 *.zip
 *.jar
-
-old.*
-ugh.*
-deno.json
+*.lock

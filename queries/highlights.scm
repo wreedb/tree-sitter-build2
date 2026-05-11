@@ -1,120 +1,116 @@
+;; @file tree-sitter-build2 highlight query
+;; @author Will Reed <wreed@disroot.org>
+;; @license LGPL-3.0-or-later WITH LGPL-3.0-linking-exception
+
 (comment) @comment @spell
 
-(type) @type.builtin
+(boolean) @boolean
 (number) @number
-(path) @string.special.path
 (string) @string
-
-(variable) @function
-
-(flag) @string
-
+(variable) @property
+(str) @string
 (string
   (variable) @string.escape)
 
+(path) @string.special.path
+(negated_path
+  (path) @comment) @comment
 
-(group
-  lhs: (name) @keyword.builtin)
+(type) @type.builtin
 
-(group
-  rhs: (name) @property)
+(function_name) @function.call
+(fn_flag) @keyword.modifier
 
-
-(assignment_expression
-  value: (value
-    (name) @string))
-
-(dependency
-  value: (identifier) @string)
- 
-(pair
-  lhs: (name) @label)
+["$"] @character.special
 
 [
-  "%"
-  "@"
-  "="
-  "=="
-  "!="
-  "?="
-  "=?"
-  ">="
-  "<="
-  "<"
-  ">"
   "+="
   "=+"
   "-="
   "=-"
+  "?="
+  "=?"
+  "="
+  ":"
+  "@"
+  "%"
+  "?"
 ] @operator
 
-(import
-  rhs: (identifier) @property)
-
-(import
-  lhs: (identifier) @keyword.builtin)
+(ternary_evaluation "?" @keyword.conditional.ternary)
+(ternary_evaluation ":" @keyword.conditional.ternary)
 
 [
-  "{"
-  "}"
-  "["
-  "]"
-] @punctuation.bracket
-
-[
-  "if" "ife" "ifn"
-  "if!" "ife!" "ifn!"
-  "elif" "elife" "elifn"
-  "elif!" "elife!" "elifn!"
-  "else"
+  "if" "if!"
+  "ife" "ife!"
+  "ifn" "ifn!"
+  "elif" "elif!"
+  "elife" "elife!"
+  "elifn" "elifn!"
+  "else" "default"
+  "case" "switch"
 ] @keyword.conditional
 
-(scope_begin) @punctuation.bracket
+[
+  "for"
+  "while"
+] @keyword.repeat
 
+(break) @keyword.return
+(continue) @keyword.return
+
+(null) @type.builtin
+
+(identifier) @property
+
+(group
+  path: (path) @constant)
+
+(group
+  left: (identifier) @constant)
+
+(group
+  right: (_) @property)
+
+(tailing_configuration
+  key: (identifier) @variable)
+
+(configuration
+  key: (identifier) @variable)
+  
 (directive
   (_
     [
-     "using"
-     "define"
-     "include"
-     "source"
-     "import"
+      "define"
+      "import"
+      "include"
+      "info"
+      "source"
     ] @keyword.builtin))
 
-(using
-  (name) @property)
-
-(define
-  name: (identifier) @variable)
-
-(define
-  value: (name) @property)
-
-(xname) @string
-(negated_path) @comment
-(negated_path
-  (path) @comment)
-
-(selection
-  ["$(" ")"] @punctuation.special)
+(import
+  (identifier) @variable)
 
 (import
-  from: (identifier) @module)
-  
-(selection
-  resource: (identifier) @constant)
-  
-(((identifier) @boolean)
-  (#match? @boolean "^(true|false)$"))
-  
-(((identifier) @number)
-  (#match? @number "^[0-9.]+$"))
+  from: (identifier) @module
+  left: (identifier) @constant
+  right: (identifier) @property)
 
-(((path) @number)
-  (#match? @number "^[0-9.]+$"))
+(assignment
+  key: (identifier) @variable)
+  
+"{" @punctuation.bracket
+"}" @punctuation.bracket
+"[" @punctuation.bracket
+"]" @punctuation.bracket
+
+(open_tailing_scope) @punctuation.bracket
 
 ((path) @character.special
  (#match? @character.special "(\\*|\\*\\*)"))
 
-((identifier) @property
- (#match? @property "^manifest$"))
+((path) @number
+ (#match? @number "^[0-9.]+$"))
+
+((identifier) @number
+ (#match? @number "^[0-9.]+$"))

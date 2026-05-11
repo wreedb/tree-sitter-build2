@@ -1,4 +1,0 @@
-hxx{*}: extension = hpp
-cxx{*}: extension = cpp
-ixx{*}: extension = ipp
-txx{*}: extension = tpp

@@ -1,0 +1,9 @@
+if ('foo' == 'bar')
+{
+    foo = 'bar'
+}
+
+cli.foo{bar}:
+{
+    install = true
+}

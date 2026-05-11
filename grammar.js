@@ -1,3 +1,12 @@
+/**
+ * @file Build2 grammar for tree-sitter
+ * @author Will Reed
+ * @license LGPL-3.0-or-later WITH LGPL-3.0-linking-exception
+ */
+
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
 const PREC =
 {
     ASSIGNMENT: -2,
@@ -14,168 +23,335 @@ const sep1 = (rule, separator) =>
 };
 
 export default grammar({
-    name: "build2",
 
+    name: "build2",
     conflicts: $ =>
     [
-        [$.name],
-        [$.name, $._dep_normal],
-        [$.name, $._dep_configuration],
-        [$._multi_prefix_group, $.lone_group],
-        [$._single_path_group, $._multi_path_group, $._dep_normal],
-        [$._single_path_group, $._multi_path_group],
-        [$.assignment_expression, $._dep_normal],
+        [$._multi_group, $._anon_group],
+        [$._multi_path_group, $._single_path_group],
+        [$.if_statement],
+        [$.if_branch, $.binary_evaluation],
+        [$.elif_branch, $.binary_evaluation],
+        [$.configuration],
+        [$.alternation, $.case_statement],
+        [$.while_statement, $.binary_evaluation],
+        [$.parameter_list],
     ],
 
     extras: $ =>
     [
         $.comment,
-        $.line_continuation,
+        $._line_continuation,
         /[ \t\f]|\r?\n/,
     ],
+
+    reserved:
+    {
+        global: $ =>
+        [
+            "if",    "if!",
+            "ife",   "ife!",
+            "ifn",   "ifn!",
+            "elif",  "elif!",
+            "elife", "elife!",
+            "elifn", "elifn!",
+            "switch", "case", "default",
+            "for", "while",
+            "continue", "break",
+            "true", "false", "[null]",
+        ],
+    },
+
     word: $ => $.identifier,
     
     rules:
     {
+
         document: $ => repeat(choice(
             $.dependency,
+            $.configuration,
             $.assignment,
             $.directive,
             $.statement,
         )),
-
-        line_continuation: _ => seq("\\", /\r?\n/),
-        
+ 
+        // BEGIN: TYPES
         identifier: _ => /(\p{XID_Start}|_|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})(\p{XID_Continue}|\$|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}|[-.])*/,
-        
-        comment: _ => token(choice(
-            seq("#", /(\\+(.|\r?\n)|[^\\\n])*/),
-            seq(
-                "#\\",
-                /([^#]|#[^\\])*/,
-                "#\\",
-            ),
+
+        path: $ => token(seq(
+            optional("+"),
+            optional("/"),
+            /[a-zA-Z0-9._]+|[*][*]|[*]/,
+            repeat(seq("/", /[a-zA-Z0-9._\-]+|[*][*]|[*]/)),
+            optional("/")
         )),
 
-        statement: $ => choice($.if_statement),
-
-        config: $ => seq(
-            "config.",
-            $._config_subname,
+        // anything that can be assigned or normally used in place of a value
+        evi: $ => choice(
+            $.evaluation,
+            $.value,
+            $.identifier,
         ),
+        
+        true: _ => "true",
+        false: _ => "false",
+        null: _ => "[null]",
+        break: _ => "break",
+        continue: _ => "continue",
+        boolean: $ => choice($.true, $.false),
+        number: $ => /\d+(\.\d+)?/,
+        variable: $ => seq("$", $.identifier),
 
-        _config_subname: $ => token(choice(
-            "cxx.coptions",
-            "cxx.poptions",
-            "cxx.loptions",
-            "cxx",
+        str: $ => token(seq(
+            /[A-Za-z_-]/,
+            /[A-Za-z0-9+=_.-]*/
         )),
+
+        type: $ => choice(
+            "bool",
+            /u?int64s?/,
+            /names?/,
+            /paths?/,
+            /dir_paths?/,
+            "name_pair",
+            "project_name",
+            "cmdline",
+            "target_triplet",
+            "string",
+            "json",
+            seq("string", /s|_set|_map/),
+            seq("json", /_array|_object|_set|_map/),
+            "null",
+        ),
 
         value: $ => choice(
-            $.name,
-            $.xname,
-            $.number,
-            $.pair,
-            $.string,
             $.path,
-            $.variable,
-            $.flag,
+            $.string,
+            $.negated_path,
+            $.pair,
             $.selection,
+            $.number,
+            $.boolean,
+            $.str,
+            $.variable,
+            $.null,
         ),
 
-        assignment: $ => $.assignment_expression,
-        assignment_expression: $ => prec.right(PREC.ASSIGNMENT, seq(
+        statement: $ => choice(
+            $.if_statement,
+            $.switch_statement,
+            $.for_statement,
+            $.while_statement,
+            $.break_statement,
+            $.continue_statement,
+        ),
+
+        negated_path: $ => seq("-", $.path),
+
+        string: $ => choice(
+            $._single_quoted_string,
+            $._double_quoted_string,
+        ),
+
+        group: $ => seq(
+            choice(
+                $._single_group,
+                $._multi_group,
+                $._single_path_group,
+                $._multi_path_group,
+                $._anon_group,
+            ),
+            optional(seq(
+                "@", $.path
+            )),
+        ),
+        
+        pair: $ => seq(
+            field("left", $.identifier),
+            "@",
+            field("right", choice(
+               $.boolean,
+               $.string,
+               $.variable,
+               $.number,
+               $.path,
+            )),
+        ),
+        // END: TYPES
+
+        type_annotation: $ => choice(
+            seq(
+                "[",
+                $.type,
+                "]",
+            ),
+            $.null,
+        ),
+
+        assignment: $ => prec.right(PREC.ASSIGNMENT, seq(
             field("key", $.identifier),
-            field("operator", choice("=", "=+", "+=", "=-", "-=", "?=", "=?")),
-            optional(repeat1(field("value", $.value))),
-            /\n/
+            optional($.type_annotation),
+            $._assigner,
+            optional(repeat1(field("value", choice($.value, $.identifier, $.evaluation)))),
+            /\n/,
         )),
 
-        pair: $ => seq(
-            field("lhs", $.name),
-            "@",
-            field("rhs", choice($.name, $.string, $.path, $.number, $.variable)),
+        configuration: $ => choice(
+            seq(
+                field("key", $.identifier),
+                optional($.type_annotation),
+                $._assigner,
+                field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
+            ),
+            seq(
+                $.open_tailing_scope,
+                repeat(seq(
+                    field("key", choice($.identifier, $.variable)),
+                    optional($.type_annotation),
+                    $._assigner,
+                    field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
+                    /\n/,
+                )),
+                "}",
+            ),
         ),
 
-
-        _if_scope: $ => seq(
+        scope: $ => seq(
             "{",
-            repeat(choice($.assignment_expression, $.directive)),
+            repeat(choice(
+                $.assignment,
+                $.statement,
+                $.directive,
+                $.dependency,
+                $.configuration,
+            )),
             "}",
         ),
 
+        requirements: $ => seq(
+            ":",
+            repeat1(choice($.group, $.identifier, $.path, $.variable)),
+        ),
+
+        configuration: $ => seq(
+            $.group, ":",
+            choice(
+                seq(
+                    field("key", $.identifier),
+                    optional($.type_annotation),
+                    $._assigner,
+                    field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
+                ),
+                seq(
+                    $.open_tailing_scope,
+                    repeat(seq(
+                        field("key", $.identifier),
+                        optional($.type_annotation),
+                        $._assigner,
+                        field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
+                        /\n/,
+                    )),
+                    "}",
+                ),
+            ),
+        ),
+
+        alternation: $ => sep1(
+            $.evi,
+            "|",
+        ),
+
+        parameter_list: $ => sep1(
+            choice($.function, $.value),
+            ",",
+        ),
+        
         binary_expression: $ => {
-            const table = [
+            const table =
+            [
                 ["==", PREC.EQUAL],
                 ["!=", PREC.EQUAL],
                 [">=", PREC.RELATIONAL],
                 ["<=", PREC.RELATIONAL],
                 [">",  PREC.RELATIONAL],
                 ["<",  PREC.RELATIONAL],
+                ["||", PREC.RELATIONAL],
+                ["&&", PREC.RELATIONAL],
             ];
-        
             return choice(...table.map(([operator, precedence]) => {
                 return prec.left(precedence, seq(
-                    field("left", choice($.value, $.variable)),
-                    field("operator", operator),
-                    field("right", choice($.value, $.variable)),
+                    field("left", choice($.value, $.identifier, $.evaluation)),
+                    $._comparator,
+                    field("right", choice($.value, $.identifier, $.evaluation)),
                 ));
             }));
         },
 
-        name: $ => $.identifier,
-        xname: $ => /[A-Za-z][A-Za-z0-9-_.+]*/,
-
-        path: $ => token(seq(
-            optional("/"),
-            /[a-zA-Z0-9._]+|[*][*]|[*]/,
-            repeat(seq("/", /[a-zA-Z0-9._\-]+|[*][*]|[*]/)),
-            optional("/"),
-        )),
+        continue_statement: $ => $.continue,
+        break_statement: $ => $.break,
         
-        negated_path: $ => seq("-", $.path),
-
-        number: $ => /\d+(\.\d+)?/,
-
-        flag: $ => seq(
-            choice("--", "-"),
-            /[A-Za-z]/,
-            /[A-Za-z0-9_.=-]+/,
-        ),
-        
-        type: $ => choice(
-             /bool/,
-             /u?int64s?/,
-             seq(/string/, optional(choice(/s/, /_set/, /_map/))),
-             /names?/,
-             /paths?/,
-             /dir_paths?/,
-             /name_pair/,
-             /project_name/,
-             /cmdline/,
-             /target_triplet/,
-             seq(/json/, optional(choice(/_array/, /_object/, /_set/, /_map/))),
+        for_statement: $ => seq(
+            "for", $.identifier, ":", repeat1($.evi),
+            field("body", seq(
+                "{",
+                repeat(choice(
+                    $.statement,
+                    $.directive,
+                    $.assignment,
+                    $.configuration,
+                    $.dependency,
+                )),
+                "}",
+            ))
         ),
 
-        postfix: $ => seq(
-            "@",
-            $.path,
-        ),
-
-
-        _single_prefix_group: $ => seq(
-            field("lhs", $.name),
-            "{",
-            field("rhs", sep1(choice($.name, $.path), token.immediate(/[ \t\f]+/))),
-            "}",
+        while_statement: $ => seq(
+            "while", choice(
+                seq("(", $.binary_expression, ")"),
+                $.evi,
+            ),
+            field("body", seq(
+                "{",
+                repeat(choice(
+                    $.statement,
+                    $.directive,
+                    $.assignment,
+                    $.configuration,
+                    $.dependency,
+                )),
+                "}",
+            )),
         ),
         
-        _multi_prefix_group: $ => seq(
+        case_statement: $ => seq(
+            "case",
+            choice($.evi, $.alternation),
+            field("consequence", choice(
+                $.statement,
+                $.directive,
+                $.assignment,
+                $.configuration,
+                $.dependency,
+            )),
+        ),
+        
+        case_default_statement: $ => seq(
+            "default",
+            field("consequence", choice(
+                $.statement,
+                $.directive,
+                $.assignment,
+                $.configuration,
+                $.dependency,
+            )),
+        ),
+        
+        switch_statement: $ => seq(
+            "switch",
+            $.evi,
             "{",
-            field("lhs", sep1(choice($.name, $.path), token.immediate(/[ \t\f]+/))),
-            "}",
-            "{",
-            field("rhs", sep1(choice($.name, $.path), token.immediate(/[ \t\f]+/))),
+            repeat($.case_statement),
+            optional($.case_default_statement),
             "}",
         ),
 
@@ -187,176 +363,379 @@ export default grammar({
         
         if_branch: $ => seq(
             choice("if", "ife", "ifn", "if!", "ife!", "ifn!"),
-            "(",
-            choice($.value, $.binary_expression),
-            ")",
-            $._if_scope,
+            field("condition", choice(
+                seq("(", $.binary_expression, ")"),
+                $.evi,
+            )),
+            field("consequence", choice(
+                $.scope,
+                $.assignment,
+                $.directive,
+                $.statement,
+            )),
         ),
 
         elif_branch: $ => seq(
             choice("elif", "elife", "elifn", "elif!", "elife!", "elifn!"),
-            "(", choice($.value, $.binary_expression), ")",
-            $._if_scope,
+            field("condition", choice(
+                seq("(", $.binary_expression, ")"),
+                $.evi,
+            )),
+            field("consequence", choice(
+                $.scope,
+                $.assignment,
+                $.directive,
+                $.statement,
+            )),
         ),
-
+        
         else_branch: $ => seq(
             "else",
-            $._if_scope,
+            field("consequence", choice(
+                $.scope,
+                $.assignment,
+                $.directive,
+                $.statement,
+            )),
         ),
 
         selection: $ => seq(
-            "$(",
+            "$",
+            "(",
             field("from", $.variable),
             ":",
             field("resource", $.identifier),
-            ")"
-        ),
-        
-        group: $ => seq(
-            choice(
-                $._single_prefix_group,
-                $._multi_prefix_group,
-                $._single_path_group,
-                $._multi_path_group,
-            ),
-            optional($.postfix),
+            ")",
         ),
 
-        
-        _single_path_group: $ => seq(
-            field("lhs", $.path),
-            field("rhs", seq(
-                "{",
-                sep1(choice($.name, $.path, $.negated_path, $.variable), " "),
-                "}",
-            )),
+        dependency: $ => seq(
+            choice($.group, $.path),
+            repeat1($.requirements),
+            optional(seq(":", $.tailing_configuration)),
+            /\n/,
         ),
 
-        _multi_path_group: $ => seq(
-            $.path,
-            field("lhs", seq(
-                "{",
-                sep1(choice($.name, $.path, $.negated_path, $.variable), " "),
-                "}",
-            )),
-            field("rhs", seq(
-                "{",
-                sep1(choice($.name, $.path, $.negated_path, $.variable), " "),
-                "}",
-            )),
-        ),
-        
-        variable: $ => seq("$", $.identifier),
-
-        _dqstring_content: $ => token.immediate(prec(1, /[^"\\$]+/)),
-        _sqstring_content: $ => token.immediate(prec(1, /[^'\\$]+/)),
-
-        
-        _sqstring: $ => seq(
-            "'", repeat($._sqstring_content), "'",
-        ),
-        
-        _dqstring: $ => seq(
-            '"', repeat(choice($._dqstring_content, $.variable)), '"',
+        // BEGIN: EVALUATIONS
+        evaluation: $ => choice(
+            $.ternary_evaluation,
+            $.binary_evaluation,
+            $.function,
         ),
 
-        string: $ => choice($._dqstring, $._sqstring),
-
-        type_annotation: $ => seq(
-            "[",
-            $.type,
-            "]",
+        binary_evaluation: $ => seq(
+            "(",
+            choice($.binary_expression, $.value, $.identifier),
+            ")",
         ),
 
-        directive: $ => choice($.using, $.define, $.include, $.source, $.import),
-
-        using: $ => seq(
-            "using",
-            $.name
-        ),
-
-        define: $ => seq(
-            "define",
-            optional($.type_annotation),
-            field("name", $.identifier),
+        ternary_evaluation: $ => seq(
+            "(",
+            choice($.binary_expression, $.value, $.identifier),
+            "?",
+            choice($.value, $.identifier),
             ":",
-            field("value", choice($.name, $.path, $.string, $.variable))
+            choice($.value, $.identifier),
+            ")",
         ),
+        // END: EVALUATIONS
 
-
-        include: $ => seq(
-            "include", $.path,
-        ),
-        
-        source: $ => seq(
-            "source", $.path,
+        // BEGIN: DIRECTIVES
+        info: $ => seq(
+            "info",
+            field("value", choice(
+                $.boolean,
+                $.string,
+                $.variable,
+                $.number,
+                $.path,
+                $.evaluation,
+            )),
         ),
 
         import: $ => seq(
             "import",
             $.identifier,
-            choice("=", "+=", "=+", "-=", "=-", "?=", "=?"),
+            $._assigner,
             field("from", $.identifier),
             "%",
-            field("resource", seq(
-                field("lhs", $.identifier),
+            seq(
+                field("left", $.identifier),
                 "{",
-                field("rhs", sep1(choice($.identifier, $.path), token.immediate(/[ \t\f]+/))),
+                field("right", repeat1(choice($.identifier, $.path))),
+                "}",
+            ),
+        ),
+
+        include: $ => seq("include", $.path),
+        source: $ => seq("source", $.path),
+
+        define: $ => prec.right(PREC.ASSIGNMENT, seq(
+            "define",
+            optional($.type_annotation),
+            field("name", $.identifier),
+            ":",
+            optional(field("value", $.evi))
+        )),
+
+
+        directive: $ => choice(
+            $.define,
+            $.import,
+            $.include,
+            $.info,
+            $.source,
+        ),
+        // END: DIRECTIVES
+
+        // BEGIN: FUNCTIONS
+        function: $ => seq(
+            "$",
+            $.function_name,
+            "(",
+            optional($.parameter_list),
+            optional(seq(
+                ",",
+                $.fn_flag,
+            )),
+            ")",
+        ),
+
+        fn_flag: $ => choice(
+            "icase",
+            "contains",
+            "contains_once",
+            "starts_with",
+            "ends_with",
+            "first_only",
+            "last_only",
+            "dedup",
+            "return_subs",
+            "return_match",
+            "format_first_only",
+            "format_no_copy",
+            "format_copy_empty",
+            "return_lines",
+            "json",
+            "json5",
+            "json5e",
+        ),
+        
+        function_name: $ => choice(
+            "null",
+            "empty",
+            "defined",
+            "visibility",
+            "getenv",
+            "generate_uuid",
+            "type",
+            "first",
+            "second",
+            "quote",
+            "sha256sum",
+            "xxh64sum",
+            seq(optional("string."), choice(
+                "icasecmp",
+                "contains",
+                "starts_with",
+                "ends_with",
+                "compare",
+                "replace",
+                "trim",
+                "ucase",
+                "lcase",
+                "size",
+                "front",
+                "back",
+                "sort",
+                "find",
+                "find_index",
+                "filter",
+                "filter_out",
+                "keys",
+                "split",
+            )),
+            "string",
+            "integer_sequence",
+            "size",
+            "front",
+            "back",
+            "sort",
+            "find",
+            "find_index",
+            seq(optional("path."), choice(
+                "representation",
+                "posix_representation",
+                "posix_string",
+                "absolute",
+                "simple",
+                "sub_path",
+                "super_path",
+                "directory",
+                "root_directory",
+                "leaf",
+                "relative",
+                "base",
+                "extension",
+                "complete",
+                "canonicalize",
+                seq(optional("try_"), "normalize"),
+                seq(optional("try_"), "actualize"),
+            )),
+            "process_path",
+            "path",
+            "path.match",
+            seq(optional("name."), choice(
+                "target_type",
+                "project",
+                "is_a",
+            )),
+            seq("regex.", choice(
+                "match",
+                "find_match",
+                seq("filter_", optional("out_"), "match"),
+                "find_search",
+                seq("filter_", optional("out_"), "search"),
+                "replace",
+                "replace_lines",
+                "split",
+                "merge",
+                "apply",
+            )),
+            "value_type",
+            "value_size",
+            "member_name",
+            "member_value",
+            "object_names",
+            "array_size",
+            "array_front",
+            "array_back",
+            "serialize",
+            seq("array_find", optional("_index")),
+            seq("json.", choice("load", "parse",)),
+            seq("process.", choice(
+                "run",
+                "run_regex",
+                "search",
+            )),
+            "recall",
+            "effect",
+            "name",
+            seq(optional("env_"), "checksum"),
+        ),
+        
+        // END: FUNCTIONS
+
+        open_tailing_scope: $ => token(/\{[ \t\f]*\r?\n/),
+        tailing_configuration: $ => choice(
+            seq(
+                field("key", $.identifier),
+                optional($.type_annotation),
+                $._assigner,
+                field("value", optional(repeat1(choice($.value, $.identifier)))),
+            ),
+            seq(
+                $.open_tailing_scope,
+                repeat(seq(
+                    field("key", $.identifier),
+                    optional($.type_annotation),
+                    $._assigner,
+                    field("value", optional(repeat1(choice($.value, $.identifier)))),
+                    /\n/,
+                )),
+                "}",
+            ),
+        ),
+
+        comment: _ => token(choice(
+            seq("#", /(\\+(.|\r?\n)|[^\\\n])*/),
+            seq(
+                "#\\",
+                /([^#]|[^\\])*/,
+                "#\\",
+            ),
+        )),
+
+        _assigner: $ => choice(
+            "=",
+            "=+",
+            "+=",
+            "-=",
+            "=-",
+            "?=",
+            "=?",
+        ),
+
+        _single_group: $ => seq(
+            field("left", $.identifier),
+            $._ibrace,
+            field("right", repeat1(choice($.identifier, $.path, $.negated_path, $.variable))),
+            "}",
+        ),
+
+        _multi_group: $ => seq(
+            field("left", seq(
+                "{",
+                repeat1(choice($.identifier, $.path, $.negated_path, $.variable)),
+                "}",
+            )),
+            field("right", seq(
+                "{",
+                repeat1(choice($.identifier, $.path, $.variable, $.negated_path)),
+                "}",
+            )),  
+        ),
+
+        _anon_group: $ => seq(
+            "{",
+            field("members", repeat1(choice($.identifier, $.path, $.negated_path, $.variable))),
+            "}",
+        ),
+
+        _single_path_group: $ => seq(
+            field("path", $.path),
+            field("right", seq(
+                $._ibrace,
+                repeat1(choice($.identifier, $.path, $.negated_path, $.variable)),
                 "}",
             )),
         ),
-    
-        scope_begin: _ => /\{[ \t\f]*\r?\n/, 
-
-        scope: $ => seq(
-            $.scope_begin,
-            repeat(choice($.assignment_expression, $.directive)),
-            "}",
-        ),
-
-        _dep_configuration: $ => seq(
-            $.group,
-            ":",
-            field("configuration", seq(
-                field("key", $.identifier),
-                optional(" "),
-                choice("=", "+=", "=+", "-=", "=-", "?=", "=?"),
-                optional(" "),
-                field("value", choice($.identifier, $.value)),
+        
+        _multi_path_group: $ => seq(
+            field("path", $.path),
+            field("left", seq(
+                $._ibrace,
+                repeat1(choice($.identifier, $.path, $.negated_path, $.variable)),
+                "}",
+            )),
+            field("right", seq(
+                "{",
+                repeat1(choice($.identifier, $.path, $.negated_path, $.variable)),
+                "}",
             )),
         ),
 
-        lone_group: $ =>  seq(
-            "{",
-            field("members", sep1(choice($.name, $.path, $.negated_path), token.immediate(/[ \t\f]+/))),
-            "}",
+        _double_quoted_string_content: $ => token.immediate(prec(1, /[^"\\$]+/)),
+        _single_quoted_string_content: $ => token.immediate(prec(1, /[^'\\$]+/)),
+
+        _double_quoted_string: $ => seq(
+            '"', repeat(choice($._double_quoted_string_content, $.variable)), '"'
         ),
 
-        _dep_normal: $ => seq(
-            choice($.group, $.path),
-            repeat1(seq(
-                ":",
-                field("prerequisites",
-                    sep1(
-                        choice($.group, $.identifier, $.path, $.negated_path, $.lone_group),
-                        token.immediate(/[ \t\f]+/)
-                    ),
-                )
-            )),
-            optional(seq(":",  choice(
-                $.scope,
-                $.assignment_expression,
-                field("configuration", seq(
-                    field("key", $.identifier),
-                    optional(" "),
-                    choice("=", "+=", "=+", "-=", "=-", "?=", "=?"),
-                    optional(" "),
-                    field("value", choice($.identifier, $.value)),
-                )),
-            ))),
+        _single_quoted_string: $ => seq(
+            "'", repeat($._single_quoted_string_content), "'"
         ),
 
-        dependency: $ => choice($._dep_configuration, $._dep_normal),
-
-    },
+        _comparator: _ => choice(
+            "==",
+            "!=",
+            ">=",
+            "<=",
+            ">",
+            "<",
+            "&&",
+            "||",
+        ),
+        _line_continuation: _ => seq("\\", /\r?\n/),
+        _ibrace: $ => alias(token.immediate("{"), "{"),
+    }
 });
