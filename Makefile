@@ -1,6 +1,6 @@
 LANGUAGE_NAME := tree-sitter-build2
 HOMEPAGE_URL := https://codeberg.org/wreedb/tree-sitter-build2
-VERSION := 0.3.0
+VERSION := $(shell cat .version)
 
 # repository
 SRC_DIR := src
