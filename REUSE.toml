@@ -7,13 +7,16 @@ SPDX-FileCopyrightText = "2026 Will Reed <wreed@disroot.org>"
 SPDX-License-Identifier = "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception"
 path = [
     "src/**",
+    "misc/**",
     "bindings/**",
-    "example/**",
+    "examples/**",
     "queries/**",
     ".editorconfig",
     ".gitignore",
     ".gitattributes",
     ".version",
+    "*.rst",
+    "*.md",
     "*.txt",
     "*.mod",
     "*.toml",
@@ -24,6 +27,7 @@ path = [
     "*.toml",
     "*.lock",
     "*.js",
+    "*.zig*",
     "Makefile",
     "justfile"
 ]

@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(tree-sitter-example
-        VERSION "0.1.0"
-        DESCRIPTION "Example grammar for tree-sitter"
-        HOMEPAGE_URL "https://github.com/tree-sitter/tree-sitter-example"
+file(READ "${CMAKE_SOURCE_DIR}/.version" VER_RAW)
+string(STRIP ${VER_RAW} VER)
+
+project(tree-sitter-build2
+        VERSION ${VER}
+        DESCRIPTION "Build2 grammar for tree-sitter"
+        HOMEPAGE_URL "https://codeberg.org/wreedb/tree-sitter-build2"
         LANGUAGES C)
 
-option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+# option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 option(TREE_SITTER_REUSE_ALLOCATOR "Reuse the library allocator" OFF)
 
 set(TREE_SITTER_ABI_VERSION 15 CACHE STRING "Tree-sitter ABI version")
@@ -19,58 +22,119 @@ include(GNUInstallDirs)
 
 find_program(TREE_SITTER_CLI tree-sitter DOC "Tree-sitter CLI")
 
-add_custom_command(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/grammar.json"
-                          "${CMAKE_CURRENT_SOURCE_DIR}/src/node-types.json"
-                   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/grammar.js"
-                   COMMAND "${TREE_SITTER_CLI}" generate grammar.js --no-parser
-                   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                   COMMENT "Generating grammar.json")
+add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/grammar.json"
+           "${CMAKE_CURRENT_SOURCE_DIR}/src/node-types.json"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/grammar.js"
+    COMMAND "${TREE_SITTER_CLI}" generate grammar.js --no-parser
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Generating grammar.json"
+)
 
-add_custom_command(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/parser.c"
-                   BYPRODUCTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tree_sitter/parser.h"
-                              "${CMAKE_CURRENT_SOURCE_DIR}/src/tree_sitter/alloc.h"
-                              "${CMAKE_CURRENT_SOURCE_DIR}/src/tree_sitter/array.h"
-                   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/grammar.json"
-                   COMMAND "${TREE_SITTER_CLI}" generate src/grammar.json
-                            --abi=${TREE_SITTER_ABI_VERSION}
-                   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                   COMMENT "Generating parser.c")
+add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/parser.c"
+    BYPRODUCTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tree_sitter/parser.h"
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/tree_sitter/alloc.h"
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/tree_sitter/array.h"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/grammar.json"
+    COMMAND "${TREE_SITTER_CLI}" generate src/grammar.json --abi=${TREE_SITTER_ABI_VERSION}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Generating parser.c"
+)
 
-add_library(tree-sitter-example src/parser.c)
+add_library(tree-sitter-build2-shared SHARED src/parser.c)
+add_library(tree-sitter-build2-static STATIC src/parser.c)
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/scanner.c)
-  target_sources(tree-sitter-example PRIVATE src/scanner.c)
+    target_sources(tree-sitter-build2-shared PRIVATE src/scanner.c)
+    target_sources(tree-sitter-build2-static PRIVATE src/scanner.c)
 endif()
-target_include_directories(tree-sitter-example
-                           PRIVATE src
-                           INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bindings/c>
-                                     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_compile_definitions(tree-sitter-example PRIVATE
-                           $<$<BOOL:${TREE_SITTER_REUSE_ALLOCATOR}>:TREE_SITTER_REUSE_ALLOCATOR>
-                           $<$<CONFIG:Debug>:TREE_SITTER_DEBUG>)
+target_include_directories(
+    tree-sitter-build2-shared
+    PRIVATE src
+    INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bindings/c>
+              $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
-set_target_properties(tree-sitter-example
-                      PROPERTIES
-                      C_STANDARD 11
-                      POSITION_INDEPENDENT_CODE ON
-                      SOVERSION "${TREE_SITTER_ABI_VERSION}.${PROJECT_VERSION_MAJOR}"
-                      DEFINE_SYMBOL "")
+target_include_directories(
+    tree-sitter-build2-static
+    PRIVATE src
+    INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bindings/c>
+              $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
-configure_file(bindings/c/tree-sitter-example.pc.in
-               "${CMAKE_CURRENT_BINARY_DIR}/tree-sitter-example.pc" @ONLY)
+target_compile_definitions(
+    tree-sitter-build2-shared
+    PRIVATE
+    $<$<BOOL:${TREE_SITTER_REUSE_ALLOCATOR}>:TREE_SITTER_REUSE_ALLOCATOR>
+    $<$<CONFIG:Debug>:TREE_SITTER_DEBUG>
+)
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bindings/c/tree_sitter"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-        FILES_MATCHING PATTERN "*.h")
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/tree-sitter-example.pc"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-install(TARGETS tree-sitter-example
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+target_compile_definitions(
+    tree-sitter-build2-static
+    PRIVATE
+    $<$<BOOL:${TREE_SITTER_REUSE_ALLOCATOR}>:TREE_SITTER_REUSE_ALLOCATOR>
+    $<$<CONFIG:Debug>:TREE_SITTER_DEBUG>
+)
+
+
+set_target_properties(
+    tree-sitter-build2-shared
+    PROPERTIES
+    C_STANDARD 11
+    POSITION_INDEPENDENT_CODE ON
+    SOVERSION "${TREE_SITTER_ABI_VERSION}.${PROJECT_VERSION_MAJOR}"
+    DEFINE_SYMBOL ""
+    OUTPUT_NAME tree-sitter-build2
+)
+
+set_target_properties(
+    tree-sitter-build2-static
+    PROPERTIES
+    C_STANDARD 11
+    POSITION_INDEPENDENT_CODE ON
+    DEFINE_SYMBOL ""
+    OUTPUT_NAME tree-sitter-build2
+)
+
+configure_file(
+    bindings/c/tree-sitter-build2.pc.in
+    "${CMAKE_CURRENT_BINARY_DIR}/tree-sitter-build2.pc" @ONLY
+)
+
+install(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bindings/c/tree_sitter"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/tree-sitter-build2.pc"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+)
+
+
+install(
+    TARGETS tree-sitter-build2-shared
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
+
+install(
+    TARGETS tree-sitter-build2-static
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
 
 file(GLOB QUERIES queries/*.scm)
-install(FILES ${QUERIES}
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/tree-sitter/queries/example")
 
-add_custom_target(ts-test "${TREE_SITTER_CLI}" test
-                  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                  COMMENT "tree-sitter test")
+install(
+    FILES ${QUERIES}
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/tree-sitter/queries/build2"
+)
+
+add_custom_target(
+    ts-test
+    "${TREE_SITTER_CLI}" test
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "tree-sitter test"
+)

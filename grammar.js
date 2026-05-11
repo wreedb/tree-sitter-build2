@@ -1,10 +1,12 @@
-/**
- * @file Build2 grammar for tree-sitter
- * @author Will Reed
- * @license LGPL-3.0-or-later WITH LGPL-3.0-linking-exception
- */
+/// @file Build2 grammar for tree-sitter
+/// @author Will Reed <wreed@disroot.org>
+/// @project https://codeberg.org/wreedb/tree-sitter-build2
+/// @license LGPL-3.0-or-later WITH LGPL-3.0-linking-exception
+///
+/// last updated: 05.11.2026
+///
 
-/// <reference types="tree-sitter-cli/dsl" />
+/// <reference types="tree-sitter-cli/dsl"/>
 // @ts-check
 
 const PREC =
@@ -49,16 +51,28 @@ export default grammar({
     {
         global: $ =>
         [
-            "if",    "if!",
-            "ife",   "ife!",
-            "ifn",   "ifn!",
-            "elif",  "elif!",
-            "elife", "elife!",
-            "elifn", "elifn!",
-            "switch", "case", "default",
-            "for", "while",
-            "continue", "break",
-            "true", "false", "[null]",
+            "if",
+            "if!",
+            "ife",
+            "ife!",
+            "ifn",
+            "ifn!",
+            "elif",
+            "elif!",
+            "elife",
+            "elife!",
+            "elifn",
+            "elifn!",
+            "switch",
+            "case",
+            "default",
+            "for",
+            "while",
+            "continue",
+            "break",
+            "true",
+            "false",
+            "[null]",
         ],
     },
 

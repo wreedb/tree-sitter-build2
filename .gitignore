@@ -1,3 +1,7 @@
+/tree-sitter-build2.pc
+/.tsqueryrc.json
+/Package.resolved
+
 *.tar.*
 *.z
 *.Z

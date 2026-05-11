@@ -16,7 +16,7 @@
     }
   ],
   "metadata": {
-    "version": "0.5.0",
+    "version": "0.6.0",
     "license": "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception",
     "description": "Build2 grammar for tree-sitter",
     "authors": [
@@ -38,6 +38,6 @@
     "python": true,
     "rust": true,
     "swift": true,
-    "zig": false
+    "zig": true
   }
 }

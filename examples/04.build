@@ -1,0 +1,4 @@
+if ($split($getenv("PATH"), ":", dedup))
+{
+    foo ?= "bar"
+}

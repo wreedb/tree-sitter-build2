@@ -77,7 +77,7 @@
 
 (configuration
   key: (identifier) @variable)
-  
+
 (directive
   (_
     [
@@ -98,7 +98,7 @@
 
 (assignment
   key: (identifier) @variable)
-  
+
 "{" @punctuation.bracket
 "}" @punctuation.bracket
 "[" @punctuation.bracket

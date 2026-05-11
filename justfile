@@ -2,7 +2,7 @@ default:
     @just --list
 
 clean:
-    -rm -fr *.so *.wasm src/
+    -rm -f *.so *.wasm tree-sitter-build2.pc
 
 regen:
     tree-sitter generate
@@ -15,3 +15,9 @@ wasm: regen
 
 play: wasm
     tree-sitter playground
+
+distclean: clean
+    -rm -fr node_modules/ build/ zig-out/ .zig-cache/ .build/
+
+REALLYclean: distclean
+    -rm -fr src/
