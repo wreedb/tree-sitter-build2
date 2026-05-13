@@ -77,7 +77,7 @@ export default grammar({
     },
 
     word: $ => $.identifier,
-    
+
     rules:
     {
 
@@ -88,7 +88,7 @@ export default grammar({
             $.directive,
             $.statement,
         )),
- 
+
         // BEGIN: TYPES
         identifier: _ => /(\p{XID_Start}|_|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})(\p{XID_Continue}|\$|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}|[-.])*/,
 
@@ -106,7 +106,7 @@ export default grammar({
             $.value,
             $.identifier,
         ),
-        
+
         true: _ => "true",
         false: _ => "false",
         null: _ => "[null]",
@@ -179,7 +179,7 @@ export default grammar({
                 "@", $.path
             )),
         ),
-        
+
         pair: $ => seq(
             field("left", $.identifier),
             "@",
@@ -210,25 +210,25 @@ export default grammar({
             /\n/,
         )),
 
-        configuration: $ => choice(
-            seq(
-                field("key", $.identifier),
-                optional($.type_annotation),
-                $._assigner,
-                field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
-            ),
-            seq(
-                $.open_tailing_scope,
-                repeat(seq(
-                    field("key", choice($.identifier, $.variable)),
-                    optional($.type_annotation),
-                    $._assigner,
-                    field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
-                    /\n/,
-                )),
-                "}",
-            ),
-        ),
+        // configuration: $ => choice(
+        //     seq(
+        //         field("key", $.identifier),
+        //         optional($.type_annotation),
+        //         $._assigner,
+        //         field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
+        //     ),
+        //     seq(
+        //         $.open_tailing_scope,
+        //         repeat(seq(
+        //             field("key", choice($.identifier, $.variable)),
+        //             optional($.type_annotation),
+        //             $._assigner,
+        //             field("value", optional(repeat1(choice($.value, $.identifier, $.evaluation)))),
+        //             /\n/,
+        //         )),
+        //         "}",
+        //     ),
+        // ),
 
         scope: $ => seq(
             "{",
@@ -248,7 +248,7 @@ export default grammar({
         ),
 
         configuration: $ => seq(
-            $.group, ":",
+            choice($.group, $.path), ":",
             choice(
                 seq(
                     field("key", $.identifier),
@@ -279,7 +279,7 @@ export default grammar({
             choice($.function, $.value),
             ",",
         ),
-        
+
         binary_expression: $ => {
             const table =
             [
@@ -303,7 +303,7 @@ export default grammar({
 
         continue_statement: $ => $.continue,
         break_statement: $ => $.break,
-        
+
         for_statement: $ => seq(
             "for", $.identifier, ":", repeat1($.evi),
             field("body", seq(
@@ -336,7 +336,7 @@ export default grammar({
                 "}",
             )),
         ),
-        
+
         case_statement: $ => seq(
             "case",
             choice($.evi, $.alternation),
@@ -348,7 +348,7 @@ export default grammar({
                 $.dependency,
             )),
         ),
-        
+
         case_default_statement: $ => seq(
             "default",
             field("consequence", choice(
@@ -359,7 +359,7 @@ export default grammar({
                 $.dependency,
             )),
         ),
-        
+
         switch_statement: $ => seq(
             "switch",
             $.evi,
@@ -374,7 +374,7 @@ export default grammar({
             repeat($.elif_branch),
             optional($.else_branch),
         ),
-        
+
         if_branch: $ => seq(
             choice("if", "ife", "ifn", "if!", "ife!", "ifn!"),
             field("condition", choice(
@@ -402,7 +402,7 @@ export default grammar({
                 $.statement,
             )),
         ),
-        
+
         else_branch: $ => seq(
             "else",
             field("consequence", choice(
@@ -533,7 +533,7 @@ export default grammar({
             "json5",
             "json5e",
         ),
-        
+
         function_name: $ => choice(
             "null",
             "empty",
@@ -636,7 +636,7 @@ export default grammar({
             "name",
             seq(optional("env_"), "checksum"),
         ),
-        
+
         // END: FUNCTIONS
 
         open_tailing_scope: $ => token(/\{[ \t\f]*\r?\n/),
@@ -696,7 +696,7 @@ export default grammar({
                 "{",
                 repeat1(choice($.identifier, $.path, $.variable, $.negated_path)),
                 "}",
-            )),  
+            )),
         ),
 
         _anon_group: $ => seq(
@@ -713,7 +713,7 @@ export default grammar({
                 "}",
             )),
         ),
-        
+
         _multi_path_group: $ => seq(
             field("path", $.path),
             field("left", seq(

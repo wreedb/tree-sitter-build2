@@ -1,0 +1,28 @@
+===============================================================================
+dependency: simple
+===============================================================================
+exe{foo}: cxx{foo} hxx{foo}
+exe{foo}: {cxx hxx}{foo}
+
+-------------------------------------------------------------------------------
+(document
+  (dependency
+    (group
+      left: (identifier)
+      right: (identifier))
+    (requirements
+      (group
+        left: (identifier)
+        right: (identifier))
+      (group
+        left: (identifier)
+        right: (identifier))))
+  (dependency
+    (group
+      left: (identifier)
+      right: (identifier))
+    (requirements
+      (group
+        left: (identifier)
+        left: (identifier)
+        right: (identifier)))))

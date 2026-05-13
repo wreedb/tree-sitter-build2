@@ -1,23 +1,53 @@
+set unstable := true
+
+ts := require("tree-sitter")
+
+version := `cat .version`
+
 default:
     @just --list
 
-clean:
-    -rm -f *.so *.wasm tree-sitter-build2.pc
+[group("tree-sitter")]
+generate:
+    @{{ts}} generate
 
-regen:
-    tree-sitter generate
+[group("tree-sitter")]
+build: generate
+    @{{ts}} build --reuse-allocator
 
-build: regen
-    tree-sitter build
+[group("tree-sitter")]
+wasm: generate
+    @{{ts}} build --reuse-allocator --wasm
 
-wasm: regen
-    tree-sitter build --wasm
-
+[group("tree-sitter")]
 play: wasm
-    tree-sitter playground
+    @{{ts}} playground
 
-distclean: clean
-    -rm -fr node_modules/ build/ zig-out/ .zig-cache/ .build/
+[group("clean")]
+clean:
+    -rm -rf *.so *.wasm *.a *.o *.pc build/ .build/ .zig-cache/ zig-out/
 
-REALLYclean: distclean
+[group("clean")]
+reallyclean: clean
     -rm -fr src/
+
+[group("maintainence")]
+version:
+    @cat .version
+    @echo -en '\n'
+
+[group("maintainence")]
+reuse:
+    @reuse lint
+
+[group("maintainence")]
+commit:
+    convco commit -i
+
+[group("maintainence")]
+bump amount="patch":
+    @pysemver bump {{amount}} {{version}}
+
+[group("maintainence")]
+changelog:
+    @git cliff

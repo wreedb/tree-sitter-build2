@@ -1,0 +1,26 @@
+===============================================================================
+dependency: chain
+===============================================================================
+exe{foo}: {hxx cxx}{foo}: manifest {*/} buzz: install = true
+
+-------------------------------------------------------------------------------
+(document
+  (dependency
+    (group
+      left: (identifier)
+      right: (identifier))
+    (requirements
+      (group
+        left: (identifier)
+        left: (identifier)
+        right: (identifier)))
+    (requirements
+      (identifier)
+      (group
+        members: (path))
+      (identifier))
+    (tailing_configuration
+      key: (identifier)
+      value: (value
+        (boolean
+          (true))))))
